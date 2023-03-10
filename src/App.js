@@ -4,8 +4,9 @@ import ErrorMessage from "./ErrorMessage";
 import TxList from "./TxList";
 
 const chainIds = {
-  polygon: 137
-}
+  polygon: 137,
+  eth: 1,
+};
 
 const startPayment = async ({ chainId, setError, setTxs, ether, addr }) => {
   try {
@@ -17,27 +18,35 @@ const startPayment = async ({ chainId, setError, setTxs, ether, addr }) => {
     const signer = provider.getSigner();
     ethers.utils.getAddress(addr);
 
-    console.log(window.ethereum.networkVersion, chainId, ethers.utils.hexlify(chainId) )
+    console.log(
+      window.ethereum.networkVersion,
+      chainId,
+      ethers.utils.hexlify(chainId)
+    );
 
     if (window.ethereum.networkVersion !== chainId) {
       try {
         await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: ethers.utils.hexlify(chainId) }]
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: ethers.utils.hexlify(chainId) }],
         });
       } catch (err) {
-          // This error code indicates that the chain has not been added to MetaMask
+        // This error code indicates that the chain has not been added to MetaMask
         if (err.code === 4902) {
           await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
+            method: "wallet_addEthereumChain",
             params: [
               {
-                chainName: 'Polygon Mainnet',
+                chainName: "Polygon Mainnet",
                 chainId: ethers.utils.hexlify(chainId),
-                nativeCurrency: { name: 'MATIC', decimals: 18, symbol: 'MATIC' },
-                rpcUrls: ['https://polygon-rpc.com/']
-              }
-            ]
+                nativeCurrency: {
+                  name: "MATIC",
+                  decimals: 18,
+                  symbol: "MATIC",
+                },
+                rpcUrls: ["https://polygon-rpc.com/"],
+              },
+            ],
           });
         }
       }
@@ -45,10 +54,12 @@ const startPayment = async ({ chainId, setError, setTxs, ether, addr }) => {
 
     const tx = await signer.sendTransaction({
       to: addr,
-      value: ethers.utils.parseEther(ether)
+      value: ethers.utils.parseEther(ether),
     });
+
     console.log({ ether, addr });
     console.log("tx", tx);
+
     setTxs([tx]);
   } catch (err) {
     setError(err.message);
@@ -64,11 +75,11 @@ export default function App() {
     const data = new FormData(e.target);
     setError();
     await startPayment({
-      chainId: chainIds.polygon,
+      chainId: chainIds.eth,
       setError,
       setTxs,
       ether: data.get("ether"),
-      addr: data.get("addr")
+      addr: data.get("addr"),
     });
   };
 
