@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ErrorMessage from "./ErrorMessage";
-import Web3 from "web3";
+import { ERC20TokenType, Link } from "@imtbl/imx-sdk";
 
 export default function App() {
   const [accounts, setAccounts] = useState([]);
@@ -24,56 +24,23 @@ export default function App() {
 
   const sendTransaction = async () => {
     try {
-      const web3 = new Web3();
-
-      const fromAddress = accounts[0];
       const toAddress = "0x86CF57a8ABDc18049f21206a7cC0E5511BE6547A";
       const amount = Number(1).toString(16);
-      const tokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+      const tokenAddress = "0x4c04c39fb6d2b356ae8b06c47843576e32a1963e";
 
-      const contract = new web3.eth.Contract(
-        [
-          {
-            constant: false,
-            inputs: [
-              {
-                name: "_to",
-                type: "address",
-              },
-              {
-                name: "_value",
-                type: "uint256",
-              },
-            ],
-            name: "transfer",
-            outputs: [
-              {
-                name: "",
-                type: "bool",
-              },
-            ],
-            payable: false,
-            stateMutability: "nonpayable",
-            type: "function",
-          },
-        ],
-        tokenAddress
-      );
+      let link = new Link("https://link.sandbox.x.immutable.com");
 
-      const data = contract.methods.transfer(toAddress, amount).encodeABI();
+      await link.setup({});
 
-      const params = [
+      const transferResponsePayload = await link.transfer([
         {
-          from: fromAddress,
-          to: tokenAddress,
-          data: data,
+          amount: amount,
+          symbol: "GODS",
+          type: ERC20TokenType.ERC20,
+          tokenAddress: tokenAddress,
+          toAddress: toAddress,
         },
-      ];
-
-      await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params,
-      });
+      ]);
     } catch (err) {
       setError(err.message);
     }
